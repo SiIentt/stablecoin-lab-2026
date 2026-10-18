@@ -69,7 +69,25 @@ contract VaultHandler is Test {
     ///       3) call vault.redeem(amount) as that user
     ///       4) do not forget approve — redeem needs no allowance, but deposit does
     ///      Hint: the two parameters have no names yet. Name them first.
-    function redeem(uint256, uint256) external {}
+    function redeem(uint256 userSeed, uint256 amount) external {
+        // select one of the three users.
+        address user = users[bound(userSeed, 0, users.length - 1)];
+
+        // skip redemption if the selected user has no stablecoins.
+        uint256 balance = stable.balanceOf(user);
+        if (balance == 0) return;
+
+        // keep the redemption amount within the user's available balance.
+        amount = bound(amount, 1, balance);
+
+        // redeem as the selected user; no token approval is required.
+        vm.startPrank(user);
+        vault.redeem(amount);
+        vm.stopPrank();
+
+        // count successful redemption calls.
+        ghost_redeems++;
+    }
 }
 
 contract InvariantTasksTest is Test {
@@ -102,13 +120,26 @@ contract InvariantTasksTest is Test {
     ///      fails, Foundry prints the counterexample call sequence — walk through that
     ///      sequence and you will see exactly how the invariant broke.
     function invariant_CollateralBacksSupply() public view {
-        assertEq(stable.totalSupply(), 0, "TODO Ex6.2");
+        // assertEq(stable.totalSupply(), 0, "TODO Ex6.2");
+        // deposits and redemptions must change collateral and supply equally.
+        assertEq(
+            vault.totalCollateral(),
+            stable.totalSupply(),
+            "Collateral must equal stablecoin supply"
+        );
     }
 
     /// TODO Ex6.3 — a second invariant: the vault itself never holds sUSD
     /// @dev Think about why this has to hold: the vault only ever mints sUSD to users and
     ///      should keep none for itself. If this one breaks, what does that mean?
     function invariant_VaultHoldsNoStablecoin() public view {
-        assertEq(stable.balanceOf(address(vault)), 1, "TODO Ex6.3");
+        // assertEq(stable.balanceOf(address(vault)), 1, "TODO Ex6.3");
+        // stablecoins are minted to users and burned directly from users.
+        // the vault should not retain stablecoins during these operations.
+        assertEq(
+            stable.balanceOf(address(vault)),
+            0,
+            "Vault must not hold stablecoins"
+        );
     }
 }

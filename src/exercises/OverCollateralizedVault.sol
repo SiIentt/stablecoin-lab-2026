@@ -112,7 +112,10 @@ contract OverCollateralizedVault {
     /// @dev The product carries 18 + 8 = 26 decimals and you want 6 — divide by 10 to the
     ///      what?
     function collateralValue(uint256 amount) public view returns (uint256) {
-        revert("TODO Ex5.1: collateralValue");
+        // revert("TODO Ex5.1: collateralValue");
+        // convert 18-decimal collateral and an 8-decimal price
+        // into a value expressed in 6-decimal stablecoin units.
+        return amount * collateralPrice() / 1e20;
     }
 
     // ==================================================================
@@ -124,7 +127,21 @@ contract OverCollateralizedVault {
     /// @dev Record the debt first and check second, so that collateralRatio() is looking
     ///      at the post-mint state
     function mintStable(uint256 amount) external {
-        revert("TODO Ex5.2: mintStable");
+        // revert("TODO Ex5.2: mintStable");
+        if (amount == 0) revert ZeroAmount();
+
+        // update the debt before checking the post-mint collateral ratio.
+        debtOf[msg.sender] += amount;
+
+        // a failed check reverts the entire transaction, including the debt update.
+        if (collateralRatio(msg.sender) < MIN_COLLATERAL_RATIO) {
+            revert Undercollateralized();
+        }
+
+        // mint only after confirming that the position remains healthy.
+        stable.mint(msg.sender, amount);
+
+        emit StableMinted(msg.sender, amount);
     }
 
     // ==================================================================
@@ -134,7 +151,24 @@ contract OverCollateralizedVault {
     /// @notice Withdraw `amount` units of collateral; the ratio afterwards must not fall
     ///         below MIN_COLLATERAL_RATIO
     function redeemCollateral(uint256 amount) external {
-        revert("TODO Ex5.3: redeemCollateral");
+        // revert("TODO Ex5.3: redeemCollateral");
+        if (amount == 0) revert ZeroAmount();
+
+        if (amount > collateralOf[msg.sender]) {
+            revert InsufficientCollateral();
+        }
+
+        // reduce the recorded collateral before checking the withdrawal's effect.
+        collateralOf[msg.sender] -= amount;
+
+        if (collateralRatio(msg.sender) < MIN_COLLATERAL_RATIO) {
+            revert Undercollateralized();
+        }
+
+        // transfer collateral only after the updated position passes the check.
+        collateral.safeTransfer(msg.sender, amount);
+
+        emit CollateralRedeemed(msg.sender, amount);
     }
 
     // ==================================================================
@@ -148,6 +182,37 @@ contract OverCollateralizedVault {
     ///      take everything the user has left — the shortfall is bad debt, and that is
     ///      exactly where liquidation is most fragile.
     function liquidate(address user) external {
-        revert("TODO Ex5.4: liquidate");
+        // revert("TODO Ex5.4: liquidate");
+        // only positions strictly below the liquidation threshold are eligible.
+        if (collateralRatio(user) >= LIQUIDATION_RATIO) {
+            revert NotLiquidatable();
+        }
+
+        uint256 debt = debtOf[user];
+        uint256 price = collateralPrice();
+
+        // convert the full debt plus the 10% bonus into collateral units.
+        // multiplying by 1e20 converts 6-decimal USD value to 18-decimal
+        // collateral units when divided by an 8-decimal price.
+        uint256 collateralSeized =
+            debt * (RATIO_PRECISION + LIQUIDATION_BONUS) * 1e20
+                / (RATIO_PRECISION * price);
+
+        // the liquidator cannot seize more collateral than the user owns.
+        if (collateralSeized > collateralOf[user]) {
+            collateralSeized = collateralOf[user];
+        }
+
+        // clear the debt and deduct the seized collateral before external calls.
+        debtOf[user] = 0;
+        collateralOf[user] -= collateralSeized;
+
+        // the liquidator pays with their own sUSD, not the borrower's tokens.
+        // ff burning fails, all preceding state updates are reverted.
+        stable.burn(msg.sender, debt);
+
+        collateral.safeTransfer(msg.sender, collateralSeized);
+
+        emit Liquidated(user, msg.sender, debt, collateralSeized);
     }
 }
