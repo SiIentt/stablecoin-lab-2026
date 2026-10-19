@@ -269,9 +269,13 @@ These have no standard answers. They are the real point of this lab:
 
 Question 4 is the door into next week's RWA lab.
 
+
+
+# github link:
+[github](https://github.com/SiIentt/stablecoin-lab-2026)
+
 # Architecture Diagram:
 ![Stablecoin Architecture](images/architecture.png)
-
 
 # Tier 2 link:
 | Contract | Address | Link |
