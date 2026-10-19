@@ -268,3 +268,14 @@ These have no standard answers. They are the real point of this lab:
    `totalCollateral()` invariant?
 
 Question 4 is the door into next week's RWA lab.
+
+# Architecture Diagram:
+![Stablecoin Architecture](images/architecture.png)
+
+
+# Tier 2 link:
+| Contract | Address | Link |
+|---|---|---|
+| MockUSDC | 0x3509314f2997364955b190b0F0a5c464593cB0A4 | [Etherscan](https://sepolia.etherscan.io/address/0x3509314f2997364955b190b0F0a5c464593cB0A4#code) |
+| SimpleStablecoin | 0xEeab5D3f4bE96a8701Ecdb9ECbdc5acc4d74aB54 | [Etherscan](https://sepolia.etherscan.io/address/0xEeab5D3f4bE96a8701Ecdb9ECbdc5acc4d74aB54#code) |
+| Vault | 0xa17EF7f1F65fb675e742e93F58656acCBDc07A5b | [Etherscan](https://sepolia.etherscan.io/address/0xa17EF7f1F65fb675e742e93F58656acCBDc07A5b#code) |
