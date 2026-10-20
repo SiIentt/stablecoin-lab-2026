@@ -271,13 +271,13 @@ Question 4 is the door into next week's RWA lab.
 
 
 
-# github link:
+## github link:
 [github](https://github.com/SiIentt/stablecoin-lab-2026)
 
-# Architecture Diagram:
+## Architecture Diagram:
 ![Stablecoin Architecture](images/architecture.png)
 
-# Tier 2 link:
+## Deployment (Sepolia)
 | Contract | Address | Link |
 |---|---|---|
 | MockUSDC | 0x3509314f2997364955b190b0F0a5c464593cB0A4 | [Etherscan](https://sepolia.etherscan.io/address/0x3509314f2997364955b190b0F0a5c464593cB0A4#code) |
